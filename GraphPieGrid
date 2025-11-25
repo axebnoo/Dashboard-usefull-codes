@@ -1,0 +1,155 @@
+import React, { useState, useEffect } from "react";
+import { Button } from 'antd';
+import DataGrid, { Column, Paging } from 'devextreme-react/data-grid';
+import GraphSinglePie from "./GraphSinglePie";
+
+const GraphPieGrid = (props) => {
+    const [data, setData] = useState([]);
+    const [dataSub, setDataSub] = useState([]);
+    const [bottomLegendPageSize, setBottomLegendPageSize] = useState(null);
+    const [selectedItemIndex, setSelectedItemIndex] = useState(0);
+
+    useEffect(() => {
+        let tData = [];
+        let tDataSub = [];
+
+        if (props.data && props.data?.length > 0) {
+
+            tData = props.data;
+            tDataSub = props.dataSub;
+
+            if (props?.wid && props.dataSub && props?.wid?.optionAgg == 1) {
+
+                tData = props.data.map(item => {
+                    const agg = Object.entries(item)
+                        .filter(([key, value]) => key !== "hostname" && key !== "color")
+                        .reduce((sum, [_, value]) => sum + parseFloat(value), 0);
+                    return {
+                        hostname: item.hostname,
+                        color: item.color,
+                        agg: agg.toFixed(2)
+                    };
+                });
+
+                tDataSub = [
+                    {
+                        "title": "Value",
+                        "dataIndex": "agg",
+                        "key": "agg",
+                        "align": "right"
+                    }
+                ];
+            }
+
+        }
+
+        setData(tData);
+        setDataSub(tDataSub);
+    }, [props.data, props.wid]);
+
+
+    useEffect(() => {
+        const layout = props?.wid?.layout;
+
+        if (!layout?.h) return;
+
+        const widgetHeight = layout.h;
+
+        let widgetHeightListBottom = {
+            1: 1,
+            2: 1,
+            3: 1,
+            4: 3,
+            5: 5,
+            6: 7,
+            7: 9,
+            8: 11,
+            9: 11,
+            10: 14,
+            11: 16,
+            12: 18,
+            13: 20,
+            14: 21,
+            15: 21,
+            16: 22,
+            17: 22,
+            18: 23,
+            19: 23,
+            20: 23,
+        };
+
+        const pageSizeBottom = widgetHeightListBottom[widgetHeight] || null;
+
+        setBottomLegendPageSize(pageSizeBottom);
+    }, [props?.wid?.layout?.h]);
+
+
+    const handleCellClick = (e) => {
+        if (e.column.dataField !== 'hostname') {
+            const colIndex = dataSub.findIndex(item => item.title === e.column.dataField);
+            setSelectedItemIndex(colIndex);
+        }
+    };
+
+    return (
+        <div style={{ display: 'flex', width: '100%', height: '100%' }}>
+            <div style={{ width: props.wid.showLegend ? '40%' : '100%' }}>
+                <GraphSinglePie data={props.data} dataSub={props.dataSub} selectedItemIndex={selectedItemIndex} />
+            </div>
+            {
+                props.wid.showLegend ?
+                    <div style={{ width: '60%', marginBottom: 10, userSelect: 'none', marginRight: 10 }}>
+
+                        <DataGrid
+                            className='dsh-table'
+                            dataSource={data ?? []}
+                            showBorders={true}
+                            showRowLines={true}
+                            allowColumnResizing={true}
+                            allowColumnReordering={true}
+                            wordWrapEnabled={false}
+                            columnResizingMode="widget"
+                            onCellClick={handleCellClick}
+                        >
+                            <Column
+                                dataField="hostname"
+                                caption="Host"
+                                width="auto"
+                                cellRender={(pRow) => {
+                                    return (
+                                        <Button type="text" size='small' style={{ margin: 0, borderRadius: '1em', height: '18px', display: 'flex', alignItems: 'center' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <div style={{ width: '10px', height: '10px', backgroundColor: pRow?.data?.color, marginRight: 8 }}>
+                                                </div>
+                                                <div style={{ fontFamily: '"Inter", sans-serif', fontSize: '12px' }}>
+                                                    <span>{pRow?.data?.hostname}</span>
+                                                </div>
+                                            </div>
+                                        </Button>
+                                    );
+                                }}
+                            />
+
+                            {
+                                dataSub.map((item, index) => (
+                                    <Column
+                                        dataField={item.key}
+                                        caption={item.key}
+                                    />
+                                ))
+                            }
+
+                            <Paging
+                                pageSize={bottomLegendPageSize}
+                            />
+
+                        </DataGrid>
+                    </div>
+                    :
+                    null
+            }
+        </div>
+    );
+}
+
+export default GraphPieGrid;
