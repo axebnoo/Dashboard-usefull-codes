@@ -1,0 +1,54 @@
+import React, { useState, useEffect } from 'react';
+import GraphBarGuage from '../GraphBarGuage/GraphBarGuage';
+
+const GraphPivotTable = (props) => {
+
+    const [data, setData] = useState([]);
+    const [widgetUnit, setWidgetUnit] = useState("");
+
+    useEffect(() => {
+        let unitYAxis = null;
+
+        if (props?.data) {
+            let tData = [...props.data];
+
+            if (props.wid?.sortValue) {
+                tData.sort((a, b) => parseFloat(b.lastvalue) - parseFloat(a.lastvalue));
+            } else {
+                tData.sort((a, b) => parseFloat(a.lastvalue) - parseFloat(b.lastvalue));
+            }
+
+            setData(tData);
+        }
+
+        if (props?.wid?.yAxisUnits) {
+            let unitValue = props.wid.yAxisUnits;;
+            unitYAxis = unitValue.length > 3 ? unitValue.substring(0, 2) + "..." : unitValue;
+        }
+
+        setWidgetUnit(unitYAxis);
+    }, [props?.data, props?.wid?.sortValue, props?.wid?.yAxisUnits]);
+
+    return (
+        <div style={{ width: '100%', height: '100%', userSelect: 'none', padding: 10, overflowY: 'auto' }}>
+            {data?.map((item, index) => (
+                <div style={{ display: 'flex', marginTop: index !== 0 ? 3 : 0, alignItems: 'center', justifyContent: 'center' }} key={index}>
+                    <div style={{ width: 120, textAlign: 'left' }}>
+                        <span style={{ fontFamily: 'Manrope', fontSize: 12 }}>
+                            {item.name.length > 18 ? item.name.substring(0, 15) + "..." : item.name}
+                        </span>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                        <GraphBarGuage value={item.lastvalue} wid={props.wid} />
+                    </div>
+                    <div style={{ width: 70, textAlign: 'right', paddingRight: 12 }}>
+                        <span style={{ fontFamily: 'Manrope', fontSize: 14 }}>{item.lastvalue}</span>
+                        <span style={{ fontFamily: 'Manrope', fontSize: 14 }}>{item.units || widgetUnit}</span>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default GraphPivotTable;
