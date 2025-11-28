@@ -1,0 +1,388 @@
+import React, { useState, useEffect } from "react";
+import { SheetComponent } from "@antv/s2-react";
+import { setLang } from '@antv/s2';
+import { merge } from 'lodash';
+setLang('en_US');
+
+const BORDER_COLOR = '#fff';
+const BACK_COLOR = '#fff';
+const HEADER_BACK_COLOR = '#1c5691';
+const CELL_ACTIVE_BACK_COLOR = '#1c5691';
+
+const customTheme = {
+    background: {
+        color: "#fff"
+    },
+    cornerCell: {
+        cell: {
+            horizontalBorderColor: BORDER_COLOR,
+            verticalBorderColor: BORDER_COLOR,
+            verticalBorderWidth: 0.5,
+            horizontalBorderWidth: 0.5,
+            backgroundColor: HEADER_BACK_COLOR
+        },
+        text: {
+            fill: '#fff',
+        },
+        bolderText: {
+            fill: '#fff',
+            opacity: 1,
+            fontWeight: 500,
+            fontSize: 12,
+            fontFamily: '"Inter", sans-serif'
+        },
+    },
+    splitLine: {
+        horizontalBorderColor: BORDER_COLOR,
+        horizontalBorderColorOpacity: 1,
+        horizontalBorderWidth: 1,
+        verticalBorderColor: '#e6e6e6',
+        verticalBorderColorOpacity: 1,
+        verticalBorderWidth: 0.5,
+        showRightShadow: true,
+        shadowWidth: 10,
+        shadowColors: {
+            left: 'rgba(0,0,0,0.1)',
+            right: 'rgba(0,0,0,0)',
+        },
+    },
+    rowCell: {
+        cell: {
+            horizontalBorderColor: '#e6e6e6',
+            verticalBorderColor: '#e6e6e6',
+            verticalBorderWidth: 0.5,
+            horizontalBorderWidth: 0.5,
+            backgroundColor: '#fff',
+            interactionState: {
+                hover: {
+                    backgroundColor: '#fff',
+                    backgroundOpacity: 1,
+                },
+                selected: {
+                    backgroundColor: '#f4f4f4'
+                }
+            }
+        },
+        bolderText: {
+            fill: '#212529',
+            opacity: 1,
+            fontFamily: '"Inter", sans-serif',
+            fontWeight: 600,
+            fontSize: 11
+        },
+        text: {
+            fill: '#212529',
+            fontFamily: '"Inter", sans-serif',
+            fontWeight: 600,
+            fontSize: 10
+        },
+    },
+
+    colCell: {
+        cell: {
+            horizontalBorderColor: '#fff',
+            verticalBorderColor: '#fff',
+            verticalBorderWidth: 0.5,
+            horizontalBorderWidth: 0.5,
+            padding: {
+                top: 12,
+                right: 8,
+                bottom: 12,
+                left: 8,
+            },
+            backgroundColor: HEADER_BACK_COLOR,
+            interactionState: {
+                hover: {
+                    backgroundColor: CELL_ACTIVE_BACK_COLOR,
+                    backgroundOpacity: 1,
+                },
+                selected: {
+                    backgroundColor: 'rgb(63, 69, 97)',
+                },
+            },
+        },
+        text: {
+            fill: '#fff',
+            fontFamily: '"Inter", sans-serif',
+            fontSize: 10
+        },
+        bolderText: {
+            fill: '#fff',
+            fontWeight: 500,
+            fontSize: 11,
+            fontFamily: '"Inter", sans-serif',
+            opacity: 1,
+        },
+        measureText: {
+            fill: '#fff',
+            fontWeight: 500,
+            fontSize: 11,
+            fontFamily: '"Inter", sans-serif'
+        }
+    },
+    scrollBar: {
+        lineCap: 'butt',
+        size: 10
+    },
+    dataCell: {
+        icon: {
+            size: 14,
+            margin: {
+                left: 10
+            },
+        },
+        cell: {
+            interactionState: {
+                hover: {
+                    backgroundColor: null,
+                    backgroundOpacity: 1,
+                },
+                hoverFocus: {
+                    backgroundColor: null,
+                    backgroundOpacity: 1,
+                    borderColor: '#fff',
+                },
+                selected: {
+                    backgroundColor: null
+                },
+                unselected: {
+                    backgroundOpacity: 1,
+                    opacity: 1,
+                },
+                prepareSelect: {
+                    // borderColor: CELL_ACTIVE_BACK_COLOR,
+                },
+            },
+            horizontalBorderColor: '#e6e6e6',
+            verticalBorderColor: '#e6e6e6',
+            verticalBorderWidth: 0.5,
+            horizontalBorderWidth: 0.5,
+            padding: {
+                top: 0,
+                right: 8,
+                bottom: 2,
+                left: 0,
+            },
+            backgroundColorOpacity: 1,
+            backgroundColor: BACK_COLOR,
+            crossBackgroundColor: BACK_COLOR,
+        },
+        text: {
+            fill: '#212529',
+            fontFamily: '"Inter", sans-serif',
+            fontSize: 11
+        }
+    },
+};
+
+
+const PALETTE_COLORS = [
+    {
+        limit: 10,
+        background: '#b8e1ff',
+    },
+    {
+        limit: 20,
+        background: '#b4d3fb',
+    },
+    {
+        limit: 30,
+        background: '#7daaff',
+    },
+    {
+        limit: 40,
+        background: '#5b8ff9',
+    },
+    {
+        limit: 50,
+        background: '#3d76dd',
+    },
+    {
+        limit: 60,
+        background: '#085ec0',
+    },
+    {
+        limit: 70,
+        background: '#085ec0cc',
+    },
+    {
+        limit: 80,
+        background: '#0047a5',
+    },
+    {
+        limit: 90,
+        background: '#00318a',
+    },
+    {
+        limit: 100,
+        background: '#001d70',
+    },
+];
+
+const PaletteLegend = () => {
+    return (
+        <div className="palette-legend">
+            <div className="palette-limit">0%</div>
+            {PALETTE_COLORS.map((color) => (
+                <span
+                    key={color.background}
+                    className="palette-color"
+                    style={{ background: color.background }}
+                />
+            ))}
+            <div className="palette-limit">100%</div>
+        </div>
+    );
+};
+
+const GridSheetPivot = (props) => {
+
+    const [optionThreshold, setOptionThreshold] = useState({
+        interaction: {
+            hoverHighlight: true,
+            brushSelection: {
+                data: true,
+                row: true,
+                col: true,
+            },
+            enableCopy: true
+        },
+        tooltip: {
+            showTooltip: true,
+            operation: {
+                hiddenColumns: true,
+                trend: true
+            },
+            row: {
+                showTooltip: false,
+            },
+        },
+        style: {
+            colCfg: {
+                hideMeasureColumn: true
+            },
+            layoutWidthType: "colAdaptive"
+        },
+        conditions: { background: [] }
+    });
+
+    const getFormatter =
+        (enablePrefix = false) =>
+            (value) => {
+                const prefix = enablePrefix && value > 0 ? '+' : '';
+                const suffix = value !== 0 ? (props.isRate ? '%' : '') : '';
+                if (value) {
+                    return `${prefix}${value}${suffix}`;
+                } else {
+                    return ' ';
+                }
+            };
+
+    const s2DataConfig = {
+        fields: {
+            rows: ["hostgroupname", "hostname"],
+            columns: ["tag", "tagvalue", "name"],
+            values: ["lastvalue"],
+            valueInCols: true
+        },
+        meta: [
+            {
+                field: 'hostgroupname',
+                name: 'Group',
+            },
+            {
+                field: 'hostname',
+                name: 'Host',
+            },
+            {
+                field: 'tag',
+                name: ' ',
+            },
+            {
+                field: 'tagvalue',
+                name: ' ',
+            },
+            {
+                field: "lastvalue",
+                name: "Value",
+                formatter: getFormatter()
+            }
+        ],
+        data: props.data
+    };
+
+    const s2Options = {
+        interaction: {
+            hoverHighlight: true,
+            brushSelection: {
+                data: true,
+                row: true,
+                col: true,
+            },
+            enableCopy: true
+        },
+        tooltip: {
+            showTooltip: true,
+            operation: {
+                hiddenColumns: true,
+                trend: true
+            },
+            row: {
+                showTooltip: false,
+            },
+        },
+        style: {
+            colCfg: {
+                hideMeasureColumn: true
+            },
+            layoutWidthType: "colAdaptive"
+        }
+    }
+
+    const onThresholdColor = (value) => {
+        let color = "#fff";
+        props.optionThreshold?.map((r, index) => {
+            if (value) {
+                if (value >= r.from && value <= r.to) {
+                    color = r.color;
+                }
+            }
+
+        })
+        return color;
+    }
+
+    useEffect(() => {
+        setOptionThreshold((prevOptionThreshold) => ({
+            ...prevOptionThreshold,
+            conditions: {
+                ...prevOptionThreshold.conditions,
+                background: [
+                    {
+                        field: 'lastvalue',
+                        mapping(value) {
+                            return { fill: props.isRate ? onThresholdColor(value) : '#fff' };
+                        },
+                    },
+                ],
+            },
+        }));
+    }, [props.optionThreshold]);
+
+    return (
+        <SheetComponent
+            dataCfg={s2DataConfig}
+            options={optionThreshold}
+            sheetType="pivot"
+            adaptive={{
+                width: true,
+                height: true
+            }}
+            themeCfg={{
+                theme: merge({}, customTheme),
+            }}
+        />
+    );
+};
+
+export default GridSheetPivot;
