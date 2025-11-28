@@ -1,0 +1,1068 @@
+import React, { useState } from "react";
+import { Collapse, List, InputNumber, Button, Popover, Select, Checkbox, TimePicker, Space, Switch } from "antd";
+import { BlockPicker } from "react-color";
+import { ConstColor } from "../../../const/ConstColor";
+import { ExclamationCircleOutlined } from "@ant-design/icons";
+import { Color } from "../../../const/Const";
+import moment from 'moment';
+import FieldSelect from "../../../components/FieldSelect/FieldSelect";
+import RightArrowIcon from "../../../assets/IconSVG/RightArrowIcon";
+import BottomArrowIcon from "../../../assets/IconSVG/BottomArrowIcon";
+import DragIcon from "../../../assets/IconSVG/DragIcon";
+import TrashIcon from "../../../assets/IconSVG/TrashIcon";
+import EnableIcon from "../../../assets/IconSVG/EnableIcon";
+import CopyIcon from "../../../assets/IconSVG/CopyIcon";
+import IconArrowDown from "../../../assets/IconSVG/IconArrowDown";
+import IconArrowRight from "../../../assets/IconSVG/IconArrowRight";
+import IconArrowUp from "../../../assets/svg/IconArrowUp";
+import BtnDefault from "../../../components/BtnDefault/BtnDefault";
+import IconTrash from "../../../assets/IconSVG/IconTrash";
+import IconPlus from "../../../assets/IconSVG/IconPlus";
+import IconMinus from "../../../assets/IconSVG/IconMinus";
+import BtnIcon from "../../../components/BtnIcon/BtnIcon";
+import FieldLabel from "../../../components/FieldLabel/FieldLabel";
+import FieldColorPicker from "../../../components/FieldColorPicker/FieldColorPicker";
+
+const NewPanelOption = (props) => {
+    const [activeKey, setActiveKey] = useState(["1"]);
+    const [swatchColor, setSwatchColor] = useState(
+        {
+            "hex": "#ff0000",
+            "rgb": {
+                "r": 255,
+                "g": 0,
+                "b": 0,
+                "a": 1
+            },
+        }
+    );
+
+    const [collapseData, setCollapseData] = useState(
+        [
+            {
+                title: "Data set #1",
+                text: 'test',
+                colors: [
+                    {
+                        item: 'name',
+                        color: '#ffffff'
+                    }
+                ]
+            }
+        ]
+    );
+
+    const [dataSet, setDataSet] = useState([
+        {
+            key: '1',
+            label: 'Data set1',
+            children: <div>A</div>
+        }
+    ]);
+
+    const blockStyle = {
+        default: {
+            input: {
+                display: "none"
+            },
+            hash: {
+                display: "none"
+            }
+        }
+    };
+
+    const [openQuickRange, setOpenQuickRange] = useState(false);
+
+    const onPressHostGroup = () => {
+        props.setIsOpenHostGroup(true);
+    }
+
+    const onPressHost = () => {
+        props.setIsOpenHost(true);
+    }
+
+    const onPressItem = () => {
+        props.setIsOpenItem(true);
+    }
+
+    const onChangeHostGroup = (newValue) => {
+        let tSelectHostGroup = props.selectHostGroup?.length > 0 ? [...props.selectHostGroup] : [];
+        tSelectHostGroup = tSelectHostGroup?.filter(r => newValue?.includes(r.value));
+        if (props.setSelectHostGroup) {
+            props.setSelectHostGroup(tSelectHostGroup);
+        }
+
+        if (tSelectHostGroup?.length == 0) {
+            if (props.setSelectHost) {
+                props.setSelectHost([]);
+            }
+        }
+    }
+
+    const onChangeHost = (newValue) => {
+        let tSelectHost = props.selectHost?.length > 0 ? [...props.selectHost] : [];
+        tSelectHost = tSelectHost?.filter(r => newValue?.includes(r.value));
+        if (props.setSelectHost) {
+            props.setSelectHost(tSelectHost);
+        }
+    }
+
+    const onChangeItem = (newValue) => {
+        let tSelectItem = props.selectItem?.length > 0 ? [...props?.selectItem] : [];
+        tSelectItem = tSelectItem?.filter(r => newValue?.includes(r.value));
+
+        if (props.setSelectItem) {
+            props.setSelectItem(tSelectItem);
+        }
+    }
+
+    const onChangeItemOption = () => {
+        let tSelectItem = props.selectItem?.length > 0 ? [...props?.selectItem] : [];
+
+        if (collapseData[0]?.colors) {
+            const b = collapseData[0].colors;
+            const mergedArray = tSelectItem.map(item => {
+                const matchingObj = b.find(obj => obj.item === item.value);
+                return {
+                    ...item,
+                    color: matchingObj ? matchingObj.color : ""
+                };
+            });
+
+            if (props.setSelectItem) {
+                props.setSelectItem(mergedArray);
+            }
+
+        }
+    }
+
+
+    const onChangeCondition = (value) => {
+        props.setGridCondition(value);
+    }
+
+    const genExtra = () => (
+        <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', marginRight: 8 }}>
+                <CopyIcon />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', marginRight: 8 }}>
+                <EnableIcon />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px', marginRight: 8 }}>
+                <TrashIcon />
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '15px', height: '15px' }}>
+                <DragIcon />
+            </div>
+        </div>
+    );
+
+    const onAddThreshold = () => {
+        let optionKey = 1;
+        const optionThreshold = props.optionThreshold;
+
+        if (optionThreshold?.length > 0) {
+            optionKey = Math.max(...optionThreshold.map(obj => obj.key), 0) + 1;
+
+            const newOption = {
+                key: optionKey,
+                from: 0,
+                to: 0,
+                color: ConstColor[optionThreshold.length],
+                colorPick: false,
+                name: "thresholds"
+            };
+    
+            props.setOptionThreshold(prevState => [...prevState, newOption]);
+        }       
+    }
+
+    const onRemoveThreshold = (optionIndex) => {
+        const optionThreshold = props.optionThreshold;
+        if (optionThreshold?.length > 1) {
+            props.setOptionThreshold(prevState => prevState.filter((obj, index) => index !== optionIndex));
+        }
+    }
+
+    const onClickPicker = (index) => {
+        props.setOptionThreshold((prevOptions) => {
+            const newOptions = prevOptions.map((option, i) => {
+                if (i === index) {
+                    return { ...option, colorPick: !option.colorPick };
+                } else {
+                    return { ...option, colorPick: false };
+                }
+            });
+            return newOptions;
+        });
+    }
+
+    const onColorPickerChange = (color, index) => {
+        props.setOptionThreshold((prevOptions) => {
+            const newOptions = prevOptions.map((option, i) => {
+                if (i === index) {
+                    return { ...option, colorPick: !option.colorPick, color: color.hex };
+                } else {
+                    return { ...option, colorPick: false };
+                }
+            });
+            return newOptions;
+        });
+        setSwatchColor(
+            {
+                "hex": color.hex,
+                "rgb": {
+                    "r": color.rgb.r,
+                    "g": color.rgb.g,
+                    "b": color.rgb.b,
+                    "a": color.rgb.a
+                },
+            }
+        );
+    }
+
+    const onChangeFromInput = (index, value) => {
+
+        props.setOptionThreshold(prevState => {
+            return prevState.map((option, i) => {
+                if (i === index) {
+                    return {
+                        ...option,
+                        from: value,
+                        color: ConstColor[i]
+                    };
+                } else {
+                    return option;
+                }
+
+            });
+        });
+    };
+
+    const onChangeToInput = (index, value) => {
+        props.setOptionThreshold(prevState => {
+            return prevState.map((option, i) => {
+                if (i === index) {
+                    return {
+                        ...option,
+                        to: value,
+                        color: ConstColor[i]
+                    };
+                } else {
+                    return option;
+                }
+
+            });
+        });
+    };
+
+    const onChangeQuickRange = (value) => {
+        props.setOptionQuickRange(value);
+        props.setActiveOptionRange("quickRange");
+    };
+
+    const onChangeFrom = (date, dateString) => {
+        const dateStr = moment().locale('ko').format("YYYY-MM-DD");
+        const dateTimeStr = `${dateStr} ${dateString}`;
+        let unix = moment(dateTimeStr, 'YYYY-MM-DD HH:mm:ss').unix();
+        props.setOptionRangeFrom(unix);
+        props.setActiveOptionRange("selectRange");
+    };
+
+    const onChangeTo = (date, dateString) => {
+        const dateStr = moment().locale('ko').format("YYYY-MM-DD");
+        const dateTimeStr = `${dateStr} ${dateString}`;
+        let unix = moment(dateTimeStr, 'YYYY-MM-DD HH:mm:ss').unix();
+        props.setOptionRangeTo(unix);
+        props.setActiveOptionRange("selectRange");
+    }
+
+    const onChangeRate = (e) => {
+        { e.target.checked ? setActiveKey(["2", "3"]) : setActiveKey(["2"]) };
+        props.setIsRate(e.target.checked);
+    };
+
+    const onChangePanelOptoins = (key) => {
+        setActiveKey(key);
+    }
+
+    const onAddDataSet = () => {
+        setDataSet(prevDataSet => {
+            const maxKey = Math.max(...prevDataSet.map(item => parseInt(item.key)));
+            const newKey = (maxKey + 1).toString();
+
+            return [
+                ...prevDataSet,
+                {
+                    key: newKey,
+                    label: 'Data set ' + newKey,
+                    children: <div>B</div>,
+                }
+            ];
+        });
+    }
+
+    const onRemoveDataSet = (keyToRemove) => {
+        setDataSet(prevDataSet => prevDataSet.filter(item => item.key !== keyToRemove));
+    }
+
+    const onChangeColorPicker = (e, index) => {
+        setCollapseData((prevData) => {
+            const newData = [...prevData];
+            const colors = [...newData[0].colors];
+
+            colors[index] = {
+                ...colors[index],
+                color: e.target.value,
+            };
+
+            newData[0] = {
+                ...newData[0],
+                colors,
+            };
+
+            return newData;
+        });
+
+
+        onChangeItemOption();
+
+    };
+
+
+    const onDeleteColorPicker = (clrIndex) => {
+        setCollapseData(prevData => {
+            const newData = [...prevData];
+            const colors = [...newData[0].colors];
+            colors.splice(clrIndex, 1);
+            newData[0].colors = colors;
+            return newData;
+        });
+    }
+
+    const onAddColorPicker = () => {
+        const updatedCollapseData = [...collapseData];
+        updatedCollapseData[0] = {
+            ...updatedCollapseData[0],
+            colors: [
+                ...updatedCollapseData[0].colors,
+                {
+                    item: 'title',
+                    color: '#ffffff'
+                },
+            ],
+        };
+        setCollapseData(updatedCollapseData);
+    }
+
+    const onSelectColorPicker = (index, value) => {
+        setCollapseData((prevData) => {
+            const newData = [...prevData];
+            const colors = [...newData[0].colors];
+
+            colors[index] = {
+                ...colors[index],
+                item: value,
+            };
+
+            newData[0] = {
+                ...newData[0],
+                colors,
+            };
+
+            return newData;
+        });
+    }
+
+
+
+    switch (props.optionType) {
+        case "graph":
+            return (
+                <Space direction="vertical" style={{ width: "100%", height: '59vh', overflowY: 'scroll' }}>
+                    {collapseData.map((elm, index) => (
+                        <Collapse
+                            defaultActiveKey={["1"]}
+                            style={{ backgroundColor: Color.white, border: 'none', borderRadius: '4px' }}
+                            expandIcon={({ isActive }) => isActive ? <BtnIcon icon="arrowdown" /> : <BtnIcon icon="arrowright" />}
+                        >
+                            <Collapse.Panel key="1" header={(<div style={{ color: '#293338', fontFamily: '"Inter", sans-serif' }}>{elm.title}</div>)} >
+
+                                <Collapse
+                                    defaultActiveKey={["0", "1"]}
+                                    style={{ backgroundColor: Color.white, borderRadius: '4px', }}
+                                    expandIcon={({ isActive }) => isActive ?
+                                        <BtnIcon icon="arrowdown" />
+                                        :
+                                        <BtnIcon icon="arrowright" />
+                                    }
+                                    bordered={false}
+                                >
+                                    <Collapse.Panel key={index} header={(<div style={{ color: '#293338', fontFamily: '"Inter", sans-serif' }}>Data</div>)} >
+
+                                        <div style={{ paddingLeft: '12px', paddingRight: '12px', paddingBottom: '12px' }}>
+                                            <div style={{ display: 'flex' }}>
+                                                <div style={{ flex: 1, color: '#293338', fontSize: '12px', fontWeight: '600', fontFamily: '"Inter", sans-serif' }}>Host group</div>
+                                                <div style={{ width: "300px" }}>
+                                                    <FieldSelect
+                                                        data={[]}
+                                                        size="small"
+                                                        value={props.selectHostGroup}
+                                                        onPressSelect={onPressHostGroup}
+                                                        placeholder="host group pattern"
+                                                        onChange={onChangeHostGroup} />
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex' }}>
+                                                <div style={{ flex: 1, color: '#293338', fontSize: '12px', fontWeight: '600', fontFamily: '"Inter", sans-serif' }}>Host</div>
+                                                <div style={{ width: "300px" }}>
+                                                    <FieldSelect
+                                                        data={[]}
+                                                        size="small"
+                                                        value={props.selectHost}
+                                                        onPressSelect={onPressHost}
+                                                        placeholder="host pattern"
+                                                        onChange={onChangeHost}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex' }}>
+                                                <div style={{ flex: 1, color: '#293338', fontSize: '12px', fontWeight: '600', fontFamily: '"Inter", sans-serif' }}>Item</div>
+                                                <div style={{ width: "300px" }}>
+                                                    <FieldSelect
+                                                        data={[]}
+                                                        size="small"
+                                                        value={props.selectItem}
+                                                        onPressSelect={onPressItem}
+                                                        placeholder="item"
+                                                        onChange={onChangeItem}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </Collapse.Panel>
+                                    <Collapse.Panel key={index} header={(<div style={{ color: '#293338', fontFamily: '"Inter", sans-serif' }}>Colors</div>)}>
+                                        <div style={{ paddingLeft: '12px', paddingRight: '12px', paddingBottom: '12px' }}>
+
+                                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                                <div style={{ flex: '1' }}>
+                                                    <FieldLabel value='Color per item' />
+                                                </div>
+                                                <div>
+                                                    <Button
+                                                        type="text"
+                                                        size="small"
+                                                        style={{ padding: '3px' }}
+                                                        onClick={(event) => {
+                                                            onAddColorPicker();
+                                                        }}
+                                                    >
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px' }}>
+                                                            <IconPlus />
+                                                        </div>
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            <div style={{ display: 'flex' }}>
+                                                <List
+                                                    itemLayout="horizontal"
+                                                    dataSource={elm.colors}
+                                                    style={{ width: '100%' }}
+                                                    locale={{ emptyText: (<div style={{ color: '#293338', fontFamily: '"Inter", sans-serif', fontSize: '12px' }}>Click the + button to configure.</div>) }}
+                                                    renderItem={(item, index) => (
+                                                        <div style={{ marginTop: index != 0 ? '10px' : '0px' }}>
+
+                                                            {index != 0 ? (<div style={{ borderTop: '1px solid #d9d9d9', marginBottom: '10px' }}></div>) : null}
+
+                                                            <div style={{ display: 'flex', paddingLeft: '20px', marginRight: '20px', alignItems: 'center' }}>
+                                                                <div style={{ flex: '1' }}>
+                                                                    <FieldLabel value="Item" />
+                                                                </div>
+                                                                <div style={{ display: 'flex' }}>
+                                                                    <div style={{ flex: 1 }}>
+                                                                        <Select
+                                                                            style={{
+                                                                                width: '160px',
+                                                                            }}
+                                                                            placeholder="Select a item"
+                                                                            size="small"
+                                                                            dropdownStyle={{
+                                                                                fontSize: 12
+                                                                            }}
+                                                                            suffixIcon={<IconArrowDown color={'#394146'} />}
+                                                                            options={props.selectItem}
+                                                                            popupMatchSelectWidth={false}
+                                                                            placement='bottomRight'
+                                                                            onChange={(value) => {
+                                                                                onSelectColorPicker(index, value);
+                                                                            }}
+                                                                        />
+                                                                    </div>
+                                                                    <div style={{ paddingLeft: '5px' }}>
+                                                                        <Button
+                                                                            type="text"
+                                                                            size="small"
+                                                                            style={{ padding: '3px' }}
+                                                                            onClick={(event) => {
+                                                                                onDeleteColorPicker(index);
+                                                                            }}
+                                                                        >
+                                                                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px' }}>
+                                                                                <IconMinus />
+                                                                            </div>
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div style={{ display: 'flex', paddingLeft: '20px', marginRight: '50px', marginTop: '5px', alignItems: 'center' }}>
+                                                                <div style={{ flex: '1' }}>
+                                                                    <FieldLabel value="Color" />
+                                                                </div>
+                                                                <div>
+                                                                    <FieldColorPicker
+                                                                        value={item.color}
+                                                                        borderColor={'#e7e9ea'}
+                                                                        onChange={(e) => onChangeColorPicker(e, index)}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                />
+                                            </div>
+                                        </div>
+                                    </Collapse.Panel>
+
+                                    <Collapse.Panel key={index} header={(<div style={{ color: '#293338', fontFamily: '"Inter", sans-serif' }}>Y Axis</div>)} >
+
+                                        <div style={{ display: 'flex', paddingLeft: '12px', paddingRight: '12px', paddingBottom: '12px', alignItems: 'center' }}>
+
+                                            <div>
+                                                <FieldLabel value="Orientation right" />
+                                            </div>
+                                            <div style={{ paddingLeft: '30px' }}>
+                                                <Switch size="small" style={{ backgroundColor: '#e7e9ea', height: '14px' }} />
+                                            </div>
+                                        </div>
+
+                                    </Collapse.Panel>
+
+                                    <Collapse.Panel key={index} header={(<div style={{ color: '#293338', fontFamily: '"Inter", sans-serif' }}>Legend</div>)} >
+                                        <div style={{ display: 'flex', paddingLeft: '12px', paddingRight: '12px', paddingBottom: '12px', alignItems: 'center' }}>
+                                            <div>
+                                                <FieldLabel value="Visibility" />
+                                            </div>
+                                            <div style={{ paddingLeft: '30px' }}>
+                                                <Switch size="small" style={{ backgroundColor: '#e7e9ea', height: '14px' }} defaultChecked />
+                                            </div>
+                                        </div>
+                                    </Collapse.Panel>
+
+                                    <Collapse.Panel key={index} header={(<div style={{ color: '#293338', fontFamily: '"Inter", sans-serif' }}>Units</div>)}>
+                                        <div style={{ paddingLeft: '12px', paddingRight: '12px', paddingBottom: '12px' }}>
+
+                                            <div style={{ display: 'flex', justifyContent: 'center' }}>
+                                                <div style={{ flex: '1' }}>
+                                                    <FieldLabel value='Unit' />
+                                                </div>
+                                                <div>
+
+                                                    <Select
+                                                        defaultValue="1"
+                                                        size="small"
+                                                        dropdownStyle={{
+                                                            fontSize: 12
+                                                        }}
+                                                        suffixIcon={<IconArrowDown color={'#394146'} />}
+                                                        popupMatchSelectWidth={false}
+                                                        options={[
+                                                            {
+                                                                value: '1',
+                                                                label: 'Default (UTC)',
+                                                            },
+                                                            {
+                                                                value: '2',
+                                                                label: '1 month',
+                                                            },
+                                                            {
+                                                                value: '3',
+                                                                label: '3 month',
+                                                            },
+                                                            {
+                                                                value: '4',
+                                                                label: '6 month',
+                                                            }
+                                                        ]}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Collapse.Panel>
+
+                                </Collapse>
+                            </Collapse.Panel>
+                        </Collapse>
+                    ))}
+                </Space>
+            );
+        case "table":
+            return (
+                <div>
+                    <Collapse
+                        defaultActiveKey={["1"]}
+                        activeKey={activeKey}
+                        onChange={onChangePanelOptoins}
+                        expandIcon={({ isActive }) => isActive ? <IconArrowDown color="#797979" /> : <IconArrowRight color="#797979" />}
+                        className="dash-collapse"
+                    >
+                        <Collapse.Panel header="Dataset" key="1" className="dash-collapse-panel">
+                            <div>
+                                <div>Host group</div>
+                                <FieldSelect
+                                    data={[]}
+                                    size="small"
+                                    value={props.selectHostGroup}
+                                    onPressSelect={onPressHostGroup}
+                                    placeholder="host group pattern"
+                                    onChange={onChangeHostGroup} />
+                            </div>
+                            <div style={{ marginTop: '10px' }}>
+                                <div>Host</div>
+                                <FieldSelect
+                                    data={[]}
+                                    size="small"
+                                    value={props.selectHost}
+                                    onPressSelect={onPressHost}
+                                    placeholder="host pattern"
+                                    onChange={onChangeHost}
+                                />
+                            </div>
+                            <div style={{ marginTop: '10px' }}>
+                                <div>Item</div>
+                                <FieldSelect
+                                    data={[]}
+                                    size="small"
+                                    value={props.selectItem}
+                                    onPressSelect={onPressItem}
+                                    placeholder="item"
+                                    onChange={onChangeItem}
+                                />
+                            </div>
+                        </Collapse.Panel>
+                        <Collapse.Panel header="Panel options" key="2" className="dash-collapse-panel">
+                            <Checkbox checked={props.isRate} onChange={onChangeRate}> <div style={{ fontSize: '11px' }}>Collection rate</div></Checkbox>
+                        </Collapse.Panel>
+                        <Collapse.Panel header="Collection rate" key="3" className="dash-collapse-panel" collapsible={props.isRate ? null : "disabled"}>
+                            <div style={{ paddingBottom: '10px' }}>
+                                <div>
+                                    <div style={{ paddingBottom: '5px', fontSize: '12px', fontWeight: '400', fontFamily: "'Malgun Gothic','맑은 고딕','Dotum','돋움','Gulim','굴림',sans-serif" }}>Select quick range</div>
+                                    <div style={{ display: 'flex' }}>
+                                        <Select
+                                            open={openQuickRange}
+                                            showSearch
+                                            defaultValue="1 day"
+                                            placeholder="select day"
+                                            options={[
+                                                {
+                                                    value: moment().locale('ko').subtract(1, 'day').startOf('day').format("YYYY-MM-DD"),
+                                                    label: '1 day',
+                                                },
+                                                {
+                                                    value: moment().locale('ko').subtract(2, 'day').startOf('day').format("YYYY-MM-DD"),
+                                                    label: '2 day',
+                                                },
+                                                {
+                                                    value: moment().locale('ko').subtract(3, 'day').startOf('day').format("YYYY-MM-DD"),
+                                                    label: '3 day',
+                                                },
+                                                {
+                                                    value: moment().locale('ko').subtract(4, 'day').startOf('day').format("YYYY-MM-DD"),
+                                                    label: '4 day',
+                                                },
+                                                {
+                                                    value: moment().locale('ko').subtract(5, 'day').startOf('day').format("YYYY-MM-DD"),
+                                                    label: '5 day',
+                                                },
+                                                {
+                                                    value: moment().locale('ko').subtract(6, 'day').startOf('day').format("YYYY-MM-DD"),
+                                                    label: '6 day',
+                                                },
+                                                {
+                                                    value: moment().locale('ko').subtract(7, 'day').startOf('day').format("YYYY-MM-DD"),
+                                                    label: '7 day',
+                                                }
+                                            ]}
+                                            optionFilterProp="children"
+                                            style={{ fontSize: '11px', width: '100px' }}
+                                            size="small"
+                                            suffixIcon={openQuickRange ? <IconArrowUp color="#797979" /> : <IconArrowDown color="#797979" />}
+                                            onDropdownVisibleChange={(o) => setOpenQuickRange(o)}
+                                            filterOption={(input, option) =>
+                                                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                            }
+                                            onChange={onChangeQuickRange}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style={{ marginTop: '10px', paddingBottom: '5px', fontSize: '12px', fontWeight: '400', fontFamily: "'Malgun Gothic','맑은 고딕','Dotum','돋움','Gulim','굴림',sans-serif" }}>Select range</div>
+                                    <div style={{ display: 'flex' }}>
+                                        <div style={{ paddingRight: '5px', fontSize: '12px' }}>
+                                            <TimePicker
+                                                className="dash-datepicker"
+                                                defaultValue={moment('00:00:00', 'HH:mm:ss')}
+                                                suffixIcon={null}
+                                                onChange={onChangeFrom}
+                                            />
+                                        </div>
+                                        <div>
+                                            ~
+                                        </div>
+                                        <div style={{ paddingLeft: '5px', fontSize: '12px', fontWeight: '500' }}>
+                                            <TimePicker
+                                                className="dash-datepicker"
+                                                defaultValue={moment('00:00:00', 'HH:mm:ss')}
+                                                suffixIcon={null}
+                                                onChange={onChangeTo}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Collapse.Panel>
+                        <Collapse.Panel header="Thresholds" key="4" className="dash-collapse-panel">
+                            <div>
+                                <BtnDefault text="+ Add threshold" full onClick={onAddThreshold} />
+                                <List
+                                    className="dashList"
+                                    size="small"
+                                    dataSource={props.optionThreshold}
+                                    renderItem={(item, index) => {
+
+                                        let isDuplicate = false;
+
+                                        if (props.optionThreshold?.length > 0) {
+                                            let tData = props.optionThreshold?.filter(r => r.key != item?.key);
+                                            if (tData?.filter(r => item?.from >= r.from && item?.from <= r.to)?.length > 0
+                                                || tData?.filter(r => item?.to >= r.from && item?.to <= r.to)?.length > 0) {
+                                                isDuplicate = true;
+                                            }
+                                        }
+
+                                        return (
+                                        <List.Item>
+                                            <div style={{ width: '100%', display: 'flex', marginTop: '10px', alignItems: 'center' }}>
+                                                <div style={{ flex: 1 }}>
+
+                                                    <div style={{ display: 'flex' }}>
+                                                        <div style={{ paddingRight: '5px' }}>
+                                                            <Popover
+                                                                overlayClassName="dash-popover-btm"
+                                                                open={item.colorPick}
+                                                                trigger="hover"
+                                                                placement="right"
+                                                                content={(
+                                                                    <BlockPicker
+                                                                        width="396px"
+                                                                        colors={ConstColor}
+                                                                        styles={blockStyle}
+                                                                        onChange={(color) => onColorPickerChange(color, index)}
+                                                                    />
+                                                                )}
+                                                            >
+                                                                <Button
+                                                                    type="primary"
+                                                                    size="small"
+                                                                    style={{
+                                                                        padding: 0,
+                                                                        margin: 0,
+                                                                        borderColor: '#fff',
+                                                                        background: '#fff',
+                                                                        boxShadow: 'none'
+                                                                    }}
+                                                                    onClick={() => onClickPicker(index)}
+                                                                >
+                                                                    <div
+                                                                        style={{
+                                                                            backgroundColor: item.color,
+                                                                            width: 24,
+                                                                            height: 24,
+                                                                            border: "1px solid #acbbc2",
+                                                                            borderRadius: '1px'
+                                                                        }}
+                                                                    />
+                                                                </Button>
+                                                            </Popover>
+                                                        </div>
+                                                        <div>
+                                                            <InputNumber
+                                                                defaultValue={item.from}
+                                                                min={0}
+                                                                max={100}
+                                                                style={{ borderRadius: 0, fontSize: '11px' }}
+                                                                size={"small"}
+                                                                onChange={(value) => onChangeFromInput(index, value)}
+                                                            />
+                                                        </div>
+                                                        <div style={{ paddingLeft: '5px', paddingRight: '5px' }}>
+                                                            ~
+                                                        </div>
+                                                        <div>
+                                                            <InputNumber
+                                                                defaultValue={item.to}
+                                                                min={0}
+                                                                max={100}
+                                                                size={"small"}
+                                                                style={{ borderRadius: 0, fontSize: '11px' }}
+                                                                onChange={(value) => onChangeToInput(index, value)}
+                                                            />
+                                                        </div>
+                                                        {isDuplicate ?
+                                                            <div style={{ display: 'flex', paddingLeft: '10px', alignItems: 'center', paddingBottom: '5px' }}>
+                                                                <ExclamationCircleOutlined style={{ color: "#817E7A" }} />
+                                                            </div>
+                                                            : null}
+                                                    </div>
+                                                </div>
+
+                                                <div style={{ paddingRight: '10px' }}>
+                                                    <Button type="primary" shape="circle" size="small" style={{ background: '#fff', border: '#fff', color: '#555555', boxShadow: 'none', paddingBottom: '5px' }}>
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }} onClick={() => onRemoveThreshold(index)}>
+                                                            <IconTrash />
+                                                        </div>
+                                                    </Button>
+                                                </div>
+
+                                            </div>
+                                        </List.Item>
+                                        );
+                                    }}
+                                />
+                            </div>
+                        </Collapse.Panel>
+                    </Collapse>
+                </div>
+            );
+        case "Plain text":
+            return (
+                <div>
+                    <div>
+                        <div>Host group</div>
+                        <FieldSelect
+                            data={[]}
+                            size="small"
+                            value={props.selectHostGroup}
+                            onPressSelect={onPressHostGroup}
+                            placeholder="host group pattern"
+                            onChange={onChangeHostGroup} />
+                    </div>
+                    <div style={{ marginTop: '10px' }}>
+                        <div>Host</div>
+                        <FieldSelect
+                            data={[]}
+                            size="small"
+                            value={props.selectHost}
+                            onPressSelect={onPressHost}
+                            placeholder="host pattern"
+                            onChange={onChangeHost}
+                        />
+                    </div>
+                    <div style={{ marginTop: '10px' }}>
+                        <div>Item</div>
+                        <FieldSelect
+                            data={[]}
+                            size="small"
+                            value={props.selectItem}
+                            onPressSelect={onPressItem}
+                            placeholder="item"
+                            onChange={onChangeItem}
+                        />
+                    </div>
+                </div>
+            );
+        case "Time series":
+            return (
+                <div>
+                    <Collapse
+                        className={`collapse-container-custom`}
+                        defaultActiveKey={["1"]}
+                        ghost
+                        expandIcon={({ isActive }) => isActive ? <RightArrowIcon /> : <BottomArrowIcon />} >
+                        {
+                            <div>
+                                <Collapse
+                                    defaultActiveKey={["1"]}
+                                    activeKey={activeKey}
+                                    onChange={onChangePanelOptoins}
+                                    expandIcon={({ isActive }) => isActive ? <IconArrowDown color="#797979" /> : <IconArrowRight color="#797979" />}
+                                    className="dash-collapse"
+                                >
+                                    <Collapse.Panel header="Dataset" key="1" className="dash-collapse-panel">
+                                        <div>
+                                            <div style={{ fontSize: '12.5px' }}>Host group</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectHostGroup}
+                                                onPressSelect={onPressHostGroup}
+                                                placeholder="host group pattern"
+                                                onChange={onChangeHostGroup} />
+                                        </div>
+                                        <div style={{ marginTop: '10px' }}>
+                                            <div style={{ fontSize: '12.5px' }}>Host</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectHost}
+                                                onPressSelect={onPressHost}
+                                                placeholder="host pattern"
+                                                onChange={onChangeHost}
+                                            />
+                                        </div>
+                                        <div style={{ marginTop: '10px' }}>
+                                            <div style={{ fontSize: '12.5px' }}>Item</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectItem}
+                                                onPressSelect={onPressItem}
+                                                placeholder="item"
+                                                onChange={onChangeItem}
+                                            />
+                                        </div>
+                                    </Collapse.Panel>
+                                </Collapse>
+                            </div>
+                        }
+                    </Collapse>
+                </div>
+            );
+        case "Bar":
+        case "Line":
+        case "ChartBar":
+        case "StackedBar":
+            return (
+                <div>
+                    <Collapse
+                        className={`collapse-container-custom`}
+                        defaultActiveKey={["1"]}
+                        ghost
+                        expandIcon={({ isActive }) => isActive ? <RightArrowIcon /> : <BottomArrowIcon />} >
+                        {
+                            <div>
+                                <Collapse
+                                    defaultActiveKey={["1"]}
+                                    activeKey={activeKey}
+                                    onChange={onChangePanelOptoins}
+                                    expandIcon={({ isActive }) => isActive ? <IconArrowDown color="#797979" /> : <IconArrowRight color="#797979" />}
+                                    className="dash-collapse"
+                                >
+                                    <Collapse.Panel header="Dataset" key="1" className="dash-collapse-panel">
+                                        <div>
+                                            <div style={{ fontSize: '12.5px' }}>Host group</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectHostGroup}
+                                                onPressSelect={onPressHostGroup}
+                                                placeholder="host group pattern"
+                                                onChange={onChangeHostGroup} />
+                                        </div>
+                                        <div style={{ marginTop: '10px' }}>
+                                            <div style={{ fontSize: '12.5px' }}>Host</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectHost}
+                                                onPressSelect={onPressHost}
+                                                placeholder="host pattern"
+                                                onChange={onChangeHost}
+                                            />
+                                        </div>
+                                        <div style={{ marginTop: '10px' }}>
+                                            <div style={{ fontSize: '12.5px' }}>Item</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectItem}
+                                                onPressSelect={onPressItem}
+                                                placeholder="item"
+                                                onChange={onChangeItem}
+                                            />
+                                        </div>
+                                    </Collapse.Panel>
+                                </Collapse>
+                            </div>
+                        }
+                    </Collapse>
+                </div>
+            );
+        case "StackedColumn":
+            return (
+                <div>
+                    <Collapse
+                        className={`collapse-container-custom`}
+                        defaultActiveKey={["1"]}
+                        ghost
+                        expandIcon={({ isActive }) => isActive ? <RightArrowIcon /> : <BottomArrowIcon />} >
+                        {
+                            <div>
+                                <Collapse
+                                    defaultActiveKey={["1"]}
+                                    activeKey={activeKey}
+                                    onChange={onChangePanelOptoins}
+                                    expandIcon={({ isActive }) => isActive ? <IconArrowDown color="#797979" /> : <IconArrowRight color="#797979" />}
+                                    className="dash-collapse"
+                                >
+                                    <Collapse.Panel header="Dataset" key="1" className="dash-collapse-panel">
+                                        <div>
+                                            <div style={{ fontSize: '12.5px' }}>Host group</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectHostGroup}
+                                                onPressSelect={onPressHostGroup}
+                                                placeholder="host group pattern"
+                                                onChange={onChangeHostGroup} />
+                                        </div>
+                                        <div style={{ marginTop: '10px' }}>
+                                            <div style={{ fontSize: '12.5px' }}>Host</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectHost}
+                                                onPressSelect={onPressHost}
+                                                placeholder="host pattern"
+                                                onChange={onChangeHost}
+                                            />
+                                        </div>
+                                        <div style={{ marginTop: '10px' }}>
+                                            <div style={{ fontSize: '12.5px' }}>Item</div>
+                                            <FieldSelect
+                                                data={[]}
+                                                size="small"
+                                                value={props.selectItem}
+                                                onPressSelect={onPressItem}
+                                                placeholder="item"
+                                                onChange={onChangeItem}
+                                            />
+                                        </div>
+                                    </Collapse.Panel>
+                                </Collapse>
+                            </div>
+                        }
+                    </Collapse>
+                </div>
+            );
+        default:
+            return null;
+    }
+};
+
+export default NewPanelOption;
