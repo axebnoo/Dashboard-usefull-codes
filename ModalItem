@@ -1,0 +1,275 @@
+import React, { useState, useEffect, useMemo } from "react";
+import { Modal, Tree, Input, Button, Table, Alert } from "antd";
+import { Color } from "../../../const/Const";
+import { CloseOutlined, CaretDownOutlined, AppstoreOutlined, BarsOutlined, ApartmentOutlined, PartitionOutlined, SyncOutlined, LoadingOutlined } from '@ant-design/icons';
+import FieldSearch from "../../../components/FieldSearch/FieldSearch";
+import BtnText from "../../../components/BtnText/BtnText";
+import BtnDefault from "../../../components/BtnDefault/BtnDefault";
+import Text from "../../../components/Text/Text";
+import GridColSearch from "../../../components/GridColSearch/GridColSearch";
+
+const ModalItem = (props) => {
+    const [dataTable, setDataTable] = useState([]);
+    const [oDataTable, setODataTable] = useState([]);
+    const [data, setData] = useState([]);
+    const [dataSelectedRowKeys, setDataSelectedRowKeys] = useState([]);
+    const [expandedKeys, setExpandedKeys] = useState([]);
+    const [searchValue, setSearchValue] = useState('');
+    const [isList, setIsList] = useState(true);
+    const [isLoadingList, setIsLoadingList] = useState(false);
+    const [isLoadingTree, setIsLoadingTree] = useState(false);
+    const [visible, setVisible] = useState(true);
+
+    const columns = [
+        {
+            title: 'Datasource',
+            dataIndex: 'servername',
+            width: '150px',
+            ellipsis: true
+        },
+        {
+            title: 'Item',
+            dataIndex: 'name',
+            width: '300px'
+        },
+        {
+            title: 'Host',
+            dataIndex: 'hostname',
+        }, {
+            title: 'Status',
+            dataIndex: 'status',
+            render: (item) => <span style={{ color: item == 'Enabled' ? '#429e47' : 'blue' }}>{item}</span>
+        }
+    ];
+
+    useEffect(() => {
+        let tDataTable = props.dataTable?.length > 0 ? [...props.dataTable] : [];
+
+        setDataTable(tDataTable);
+        setODataTable(tDataTable);
+    }, [props.dataTable, props?.editGraphType])
+
+    useEffect(() => {
+        let tData = [];
+        let tDataSelectedRowKeys = [];
+
+        if (props?.selectItem?.length > 0) {
+            tData = props?.selectItem;
+            tDataSelectedRowKeys = tData?.map(r => r.value);
+        }
+        setData(tData);
+        setDataSelectedRowKeys(tDataSelectedRowKeys);
+    }, [props?.selectItem]);
+    
+    const onOk = async () => {
+        let tData = [...data];
+        props.setOpenItemModal(false);
+        if (props.setSelectItem) {
+            props.setSelectItem(tData);
+        }
+    }
+
+    const onCheck = (checkedKeys, e) => {
+        let tData = [];
+        e.checkedNodes?.map((item) => {
+            tData.push(
+                {
+                    'label': item.item,
+                    'value': item.key,
+                    'value_type': item.value_type,
+                    'units': item.units,
+                    'hostname': item.hostname,
+                    'ischildren': item.ischildren
+                }
+            );
+        });
+        setData(tData);
+        setDataSelectedRowKeys(checkedKeys);
+    }
+
+    const onCheckList = (tData, checkedKeys) => {
+        setData(tData);
+        setDataSelectedRowKeys(checkedKeys);
+    }
+
+
+    const onExpand = (newExpandedKeys) => {
+        setExpandedKeys(newExpandedKeys);
+    };
+
+    const getParentKey = (key, tree) => {
+        let parentKey;
+        for (let i = 0; i < tree.length; i++) {
+            const node = tree[i];
+            if (node.children) {
+                if (node.children.some((item) => item.key === key)) {
+                    parentKey = node.key;
+                } else if (getParentKey(key, node.children)) {
+                    parentKey = getParentKey(key, node.children);
+                }
+            }
+        }
+        return parentKey;
+    };
+
+    const onClickFieldSearch = (e) => {
+        const value = e;
+        if (value?.length > 0) {
+            const newExpandedKeys = props.dataTable
+                .map((item) => {
+                    if (item.title.indexOf(value) > -1) {
+                        return getParentKey(item.key, props.dataColumn);
+                    }
+                    return null;
+                })
+                .filter((item, i, self) => item && self.indexOf(item) === i);
+            setExpandedKeys(newExpandedKeys);
+            setSearchValue(value);
+        } else {
+            setExpandedKeys([]);
+            setSearchValue('');
+        }
+    }
+
+    const onChangeSearch = (pData) => {
+        setDataTable(pData);
+    }
+
+    const treeData = useMemo(() => {
+        const loop = (data) =>
+            data?.map((item) => {
+                const strTitle = item.title;
+                const index = strTitle.indexOf(searchValue);
+                const beforeStr = strTitle.substring(0, index);
+                const afterStr = strTitle.slice(index + searchValue.length);
+                const title =
+                    index > -1 ? (
+                        <span>
+                            {beforeStr}
+                            <span className="site-tree-search-value" style={{ background: 'yellow' }}>{searchValue}</span>
+                            {afterStr}
+                        </span>
+                    ) : (
+                        <span>{strTitle}</span>
+                    );
+                if (item.children) {
+
+                    return {
+                        title,
+                        item: item.title,
+                        key: item.key,
+                        children: loop(item.children),
+                        ischildren: false,
+                        value_type: item.value_type
+                    };
+                }
+                return {
+                    title: title,
+                    item: item.title,
+                    key: item.key,
+                    ischildren: true,
+                    value_type: item.value_type
+                };
+            });
+        return loop(props.dataColumn);
+    }, [searchValue, props.dataColumn]);
+
+    const onChangeSegment = (e) => {
+        if (e == "Tree") {
+            setIsLoadingTree(true);
+        } else if (e == "List") {
+            setIsLoadingList(true);
+        }
+
+        setIsList(!isList);
+        setIsLoadingTree(false);
+        setIsLoadingList(false);
+    }
+
+    const onSetData = (pData) => {
+
+    }
+
+    const onSetDataKeys = (pKeys) => {
+
+    }
+
+    return (
+        <Modal
+            className="customPopup"
+            maskClosable={false}
+            styles={{ backgroundColor: "transparent" }}
+            title={props.title}
+            open={props.isOpen}
+            width={isList ? "100vh" : 500}
+            style={{
+                top: 30
+            }}
+            contentWrapperStyle={{
+                padding: 10
+            }}
+            okText="Select"
+            cancelText="Cancel"
+            cancelButtonProps={{ size: 'small', style: { fontSize: '12px', padding: '0 10px 0px' } }}
+            closeIcon={<CloseOutlined style={{ fontSize: '12px' }} />}
+            okButtonProps={{
+                size: 'small',
+                style: {
+                    fontSize: '12px',
+                    background: Color.btnPrimary,
+                    borderColor: Color.btnPrimary,
+                    borderRadius: 0,
+                    padding: '0 10px 0px'
+                }
+            }}
+            onOk={onOk}
+            onCancel={(e) => props.setOpenItemModal(false)}
+            footer={[
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', fontSize: '12px', marginLeft: '15px' }}>{dataSelectedRowKeys.length > 0 ? <Text title={dataSelectedRowKeys.length + ' selected'} /> : null}  </div>
+                    </div>
+                    <div style={{ display: 'flex' }}>
+                        <BtnText text="Cancel" onClick={() => props.setOpenItemModal(false)}></BtnText>
+                        <BtnDefault text="Select" onClick={onOk}></BtnDefault>
+                    </div>
+                </div>
+            ]}
+        >
+            <div>
+
+                {/* {visible && (
+                    <Alert message="Please select the Item" type="info" showIcon style={{ fontSize: '12px', fontFamily: '"Inter", sans-serif', borderRadius: 0 }} closable />
+                )}
+                 */}
+
+                {isList ? <div>
+
+                    <GridColSearch
+                        dataSource={dataTable}
+                        columns={columns}
+                        selectedRowKeys={dataSelectedRowKeys}
+                        onSetData={onSetData}
+                        onSetDataKeys={onSetDataKeys}
+                    />
+
+                </div> :
+                    <Tree
+                        onExpand={onExpand}
+                        expandedKeys={expandedKeys}
+                        onCheck={onCheck}
+                        checkedKeys={dataSelectedRowKeys}
+                        rootStyle={{ fontSize: '11px', fontWeight: 'normal' }}
+                        showLine
+                        switcherIcon={<CaretDownOutlined />}
+                        checkable
+                        treeData={treeData}
+                    />
+                }
+
+            </div>
+        </Modal >
+    )
+}
+
+export default ModalItem;
