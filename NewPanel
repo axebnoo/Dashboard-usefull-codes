@@ -1,0 +1,506 @@
+import React, { useEffect, useState } from "react";
+import { Button, Modal, Row, Col, Tabs, List, Input, Popover } from "antd";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
+import * as xlsx from "xlsx";
+import moment from 'moment';
+import GraphPreview from "../../GraphPreview/GraphPreview";
+import ChartBar from "../../../assets/svg/Graph/ChartBar";
+import ChartBarActive from "../../../assets/svg/Graph/ChartBarActive";
+import ChartColumn from "../../../assets/svg/Graph/ChartColumn";
+import ChartColumnActive from "../../../assets/svg/Graph/ChartColumnActive";
+import ChartStackedBar from "../../../assets/svg/Graph/ChartStackedBar";
+import ChartStackedColumn from "../../../assets/svg/Graph/ChartStackedColumn";
+import ChartStackedColumnActive from "../../../assets/svg/Graph/ChartStackedColumnActive";
+import ChartDonut from "../../../assets/svg/Graph/ChartDonut";
+import ChartStackedBarActive from "../../../assets/svg/Graph/ChartStackedBarActive";
+import ChartDonutActive from "../../../assets/svg/Graph/ChartDonutActive";
+import ChartLine from "../../../assets/svg/Graph/ChartLine";
+import ChartLineActive from "../../../assets/svg/Graph/ChartLineActive";
+import TableIcon from "../../../assets/svg/TableIcon";
+import TableIconActive from "../../../assets/svg/TableIconActive";
+import Icon from "../../../assets/Icon/Icon";
+import IconSearch from "../../../assets/svg/IconSearch";
+import IconArrowUp from "../../../assets/svg/IconArrowUp";
+import NewPanelOption from "../NewPanelOption/NewPanelOption";
+
+const NewPanel = (props) => {
+
+    const [dKey, setDKey] = useState(1);
+    const [tabKey, setTabKey] = useState("1");
+    const [activeId, setActiveId] = useState(0);
+    const [graphLineSize, setGraphLineSize] = useState(2);
+    const [graphAreaFill, setGraphAreaFill] = useState(1);
+    const [showPercentage, setShowPercentage] = useState(false);
+    const [graphName, setGraphName] = useState('');
+    const [isOpenColor, setIsOpenColor] = useState(false);
+    const [showSelectType, setShowSelectType] = useState(false);
+    const [showRatePicker, setShowRatePicker] = useState(false);
+    const [exportData, setExportData] = useState([]);
+    const [isSideShow, setIsSideShow] = useState(false);
+    const [leftPanelLenght, setLeftPanelLenght] = useState(7);
+    const [rightPanelLenght, setRightPanelLenght] = useState(17);
+    const [isApplyBtnPressed, setIsApplyBtnPressed] = useState(false);
+    const [optionQuickRange, setOptionQuickRange] = useState("1 day");
+    const [optionRangeFrom, setOptionRangeFrom] = useState("");
+    const [optionRangeTo, setOptionRangeTo] = useState("");
+    const [activeOptionRange, setActiveOptionRange] = useState("quickRange");
+    const [swatchColor, setSwatchColor] = useState(
+        {
+            "hex": "#ff0000",
+            "rgb": {
+                "r": 255,
+                "g": 0,
+                "b": 0,
+                "a": 1
+            },
+        }
+    );
+    const [optionThreshold, setOptionThreshold] = useState([
+        {
+            key: 1,
+            from: 0,
+            to: 10,
+            color: "#FFFFFF",
+            colorPick: false,
+            name: "thresholds",
+            message: false
+        }
+    ]);
+
+    const [graph, setGraph] = useState([
+        {
+            title: "graph",
+            icon: <ChartLine />,
+            iconActive: <ChartLineActive />,
+            description: "Time based line, area and bar charts",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "Time series",
+            icon: <ChartLine />,
+            iconActive: <ChartLineActive />,
+            description: "Time based line, area and bar charts",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "Line",
+            icon: <ChartLine />,
+            iconActive: <ChartLineActive />,
+            description: "Supports many column styles",
+            isActive: false,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "Bar",
+            icon: <ChartColumn />,
+            iconActive: <ChartColumnActive />,
+            description: "Categorical charts with group support",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "StackedBar",
+            icon: <ChartBar />,
+            iconActive: <ChartBarActive />,
+            description: "",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "StackedColumn",
+            icon: <ChartStackedColumn />,
+            iconActive: <ChartStackedColumnActive />,
+            description: "",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "table",
+            icon: <TableIcon />,
+            iconActive: <TableIconActive />,
+            description: "Supports many column styles",
+            isActive: false,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "ChartBar",
+            icon: <ChartStackedBar />,
+            iconActive: <ChartStackedBarActive />,
+            description: "Horizontal and vertical gauges",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "Plain text",
+            icon: <TableIcon />,
+            iconActive: <TableIconActive />,
+            description: "",
+            isActive: true,
+            isMultiSelect: false,
+            isSelectable: true
+        },
+        {
+            title: "Problems",
+            icon: <TableIcon />,
+            iconActive: <TableIconActive />,
+            description: "",
+            isActive: false,
+            isMultiSelect: false,
+            isSelectable: true
+        },
+        {
+            title: "Problems by severity",
+            icon: <TableIcon />,
+            iconActive: <TableIconActive />,
+            description: "",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "Host availability",
+            icon: <TableIcon />,
+            iconActive: <TableIconActive />,
+            description: "",
+            isActive: false,
+            isMultiSelect: false,
+            isSelectable: true
+        },
+        {
+            title: "clock",
+            icon: null,
+            iconActive: null,
+            description: "",
+            isActive: false,
+            isMultiSelect: false,
+            isSelectable: true
+        },
+        {
+            title: "Pie",
+            icon: <ChartDonut />,
+            iconActive: <ChartDonutActive />,
+            description: "The new core pie chart visualization",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        },
+        {
+            title: "Item value",
+            icon: <TableIcon />,
+            iconActive: <TableIconActive />,
+            description: "",
+            isActive: true,
+            isMultiSelect: true,
+            isSelectable: true
+        }
+    ]);
+
+    const [graphActive, setGraphActive] = useState(
+        {
+            title: "graph",
+            icon: <ChartLine />,
+            iconActive: <ChartLineActive />,
+            description: "Time based line, area and bar charts",
+            isActive: true,
+            isMultiSelect: true
+        }
+    );
+
+
+    const [isRate, setIsRate] = useState(false);
+
+    useEffect(() => {
+        if (props?.editGraphType) {
+            let tIndex = graph?.map(r => r.title).indexOf(props?.editGraphType);
+            if (tIndex >= 0) {
+                setGraphActive({ ...graph[tIndex] });
+                setGraphName(props?.selectGraphName ? props?.selectGraphName : "");
+            }
+        }
+    }, [props?.editGraphType]);
+
+    const onChangeTab = (key) => {
+        setTabKey(key);
+    };
+
+    const onChartSelect = (index, item) => {
+        setActiveId(index);
+        props.setEditGraphType(item.title);
+    }
+
+    const options = [];
+    for (let i = 10; i < 36; i++) {
+        options.push({
+            label: i.toString(36) + i,
+            value: i.toString(36) + i,
+        });
+    }
+
+    const onPanel = () => {
+        props.onNewPanel(
+            props.editGraphType,
+            swatchColor,
+            graphLineSize,
+            graphAreaFill,
+            graphName,
+            showPercentage,
+            optionThreshold,
+            isApplyBtnPressed,
+            optionQuickRange,
+            optionRangeFrom,
+            optionRangeTo,
+            isRate,
+            activeOptionRange
+        );
+        props.setMainModel(false);
+    }
+
+    const onGraphName = (e) => {
+        setGraphName(e.target.value);
+    };
+
+    const handleColorChange = (color, event) => {
+        setSwatchColor(
+            {
+                "hex": color.hex,
+                "rgb": {
+                    "r": color.rgb.r,
+                    "g": color.rgb.g,
+                    "b": color.rgb.b,
+                    "a": color.rgb.a
+                },
+            }
+        );
+        setIsOpenColor(false);
+    }
+
+    const onGraphLineSize = (newValue) => {
+        setGraphLineSize(newValue);
+    };
+
+    const onGraphAreaFill = (newValue) => {
+        setGraphAreaFill(newValue);
+    };
+
+    const onSelectType = (index, graphType) => {
+        if (graphType.isSelectable) {
+            setGraphActive(graphType);
+            onChartSelect(index, graphType);
+            setShowSelectType(r => !r);
+            setDKey(r => r = r + 1);
+            props.setIsMultiSelect(graphType.isMultiSelect);
+        }
+    }
+
+    const onSideToggle = () => {
+        setIsSideShow(!isSideShow);
+        setRightPanelLenght(isSideShow ? 17 : 24);
+    }
+
+    const onCancel = () => {
+        setShowSelectType(false);
+        setTimeout(() => {
+            props.setMainModel(false);
+        }, 200);
+    }
+
+    return (
+        <div>
+            <Modal
+                className="customPopup"
+                title={!props?.isView ? "Add a new panel" : "View"}
+                open={props.isMainModel}
+                onOk={(e) => onPanel()}
+                onCancel={() => onCancel()}
+                okText={!props?.isView ? (props?.editGraphID > 0 ? "Update" : "Add") : false}
+                cancelText="Cancel"
+                okButtonProps={{ size: 'small', style: { fontSize: '12px', padding: '0 10px 0px' } }}
+                cancelButtonProps={{ size: 'small', style: { fontSize: '12px', padding: '0 10px 0px' } }}
+                width={!props?.isView ? 1400 : "100%"}
+                style={{
+                    top: 50
+                }}
+                maskClosable={false}
+            >
+                <Row style={{ display: 'flex' }}>
+                    {!props?.isView ? (
+                        <Col span={leftPanelLenght} style={{ flex: 1, height: '502px', overflowY: 'scroll' }} hidden={isSideShow}>
+                            <div style={{ paddingRight: "10px" }}>
+                                <div>
+                                    <Popover
+                                        open={showSelectType}
+                                        overlayClassName="dash-popover-bottom"
+                                        title={(
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif"
+                                                }}>
+                                                <div style={{ flex: 1 }}>
+                                                    <Input placeholder="Search for..." prefix={
+                                                        <IconSearch />
+                                                    } allowClear />
+                                                </div>
+                                                <div style={{ paddingLeft: '5px' }}>
+                                                    <Button icon={
+                                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <IconArrowUp />
+                                                        </div>
+                                                    }
+                                                        onClick={() => setShowSelectType(r => !r)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                        content={(
+                                            <div style={{ width: '375px', height: "450px", overflow: 'scroll' }}>
+                                                <List
+                                                    className="dash-list"
+                                                    itemLayout="horizontal"
+                                                    dataSource={graph}
+                                                    renderItem={(item, index) => (
+                                                        <List.Item onClick={() => onSelectType(index, item)}>
+                                                            <List.Item.Meta
+                                                                avatar={<div style={{ width: '40px', height: '40px' }}>{item.isSelectable ? item.icon : item.iconActive}</div>}
+                                                                title={<div style={{ fontSize: '12px', fontFamily: '"Inter", sans-serif', fontWeight: 500 }}>
+                                                                    {item.title.charAt(0).toUpperCase() + item.title.slice(1)}
+                                                                </div>}
+                                                                description={<div style={{ fontSize: '11px', fontFamily: '"Inter", sans-serif' }}>{item.description}</div>}
+                                                            />
+
+                                                        </List.Item>
+                                                    )}
+                                                />
+                                            </div>
+                                        )}
+                                        trigger="hover"
+                                        placement="bottom">
+                                        <div>
+                                            <div
+                                                style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    border: '1px solid rgba(36, 41, 46, 0.12)',
+                                                    backgroundColor: 'rgb(255, 255, 255)'
+                                                }}
+                                                onClick={() => setShowSelectType(r => !r)}>
+                                                <div style={{ display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                                                    <div style={{ width: '30px', height: '30px' }}>
+                                                        {graphActive.icon}
+                                                    </div>
+                                                    <div style={{ fontWeight: 400, fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif", fontSize: '12px' }}>
+                                                        {graphActive.title.charAt(0).toUpperCase() + graphActive.title.slice(1)}
+                                                    </div>
+                                                </div>
+                                                <div style={{ paddingRight: '10px' }}>
+                                                    <Icon name="angle-down-min" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Popover>
+                                    <div style={{ marginTop: '10px' }}>
+                                        <div>
+                                            Name
+                                        </div>
+                                        <Input placeholder="default" value={graphName} onChange={onGraphName} maxLength={30} style={{ borderRadius: 0 }} />
+                                    </div>
+                                    <div style={{ marginTop: '10px' }}>
+                                        <Tabs
+                                            className="dash-tabs"
+                                            defaultActiveKey={'1'}
+                                            onChange={onChangeTab}
+                                            items={[
+                                                {
+                                                    label: 'Data set',
+                                                    key: '1',
+                                                    children:
+                                                        <div>
+                                                            <NewPanelOption
+                                                                optionType={graphActive.title}
+                                                                selectHostGroup={props.selectHostGroup}
+                                                                setSelectHostGroup={props.setSelectHostGroup}
+                                                                setIsOpenHostGroup={props.setIsOpenHostGroup}
+                                                                selectHost={props.selectHost}
+                                                                setSelectHost={props.setSelectHost}
+                                                                setIsOpenHost={props.setIsOpenHost}
+                                                                setIsOpenItem={props.setOpenItemModal}
+                                                                optionThreshold={optionThreshold}
+                                                                setOptionThreshold={setOptionThreshold}
+                                                                optionQuickRange={optionQuickRange}
+                                                                setOptionQuickRange={setOptionQuickRange}
+                                                                setOptionRangeFrom={setOptionRangeFrom}
+                                                                setOptionRangeTo={setOptionRangeTo}
+                                                                isRate={isRate}
+                                                                setIsRate={setIsRate}
+                                                                activeOptionRange={activeOptionRange}
+                                                                setActiveOptionRange={setActiveOptionRange}
+                                                                selectItem={props?.selectItem?.length > 0 ? props?.selectItem : []}
+                                                                setSelectItem={props?.setSelectItem}
+                                                            />
+                                                        </div>
+                                                }
+                                            ]}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </Col>
+                    ) : null}
+                    <Col span={!props?.isView ? rightPanelLenght : 24} style={{ flex: 1 }}>
+                        <div>
+                            <div style={{ color: '#54698d', backgroundColor: '#eef1f6', padding: '10px' }}>
+                                <div style={{ display: 'flex' }}>
+                                    {!props?.isView ?
+                                        <div style={{ display: 'flex', flex: 1, alignItems: 'center' }}>
+                                            <div><Button type="text" shape="circle" icon={isSideShow ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} style={{ color: '#54698d' }} onClick={onSideToggle} /></div>
+                                            <div style={{ paddingLeft: "5px", color: '#54698d' }}>Preview</div>
+                                        </div>
+                                        : <div></div>
+                                    }
+                                    <div style={{ marginRight: 5 }}>
+                                     
+                                    </div>
+                                </div>
+                                <div style={{ backgroundColor: "#FFF", marginTop: '10px', padding: '10px', borderRadius: '1px' }}>
+                                    <div key={dKey} style={{ height: !props?.isView ? '420px' : '70vh' }}>
+                                        <GraphPreview
+                                            type={props.editGraphType}
+                                            selectItem={props?.selectItem?.length > 0 ? props?.selectItem : []}
+                                            graphColor={swatchColor}
+                                            graphLineSize={graphLineSize}
+                                            graphAreaFill={graphAreaFill}
+                                            timeRange={props.timeRange}
+                                            showPercentage={showPercentage}
+                                            setExportData={setExportData}
+                                            optionThreshold={optionThreshold}
+                                            isApplyBtnPressed={isApplyBtnPressed}
+                                            optionQuickRange={optionQuickRange}
+                                            optionRangeFrom={optionRangeFrom}
+                                            optionRangeTo={optionRangeTo}
+                                            isRate={isRate}
+                                            activeOptionRange={activeOptionRange}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </Col>
+                </Row>
+            </Modal>
+
+        </div >
+    )
+}
+
+export default NewPanel;
