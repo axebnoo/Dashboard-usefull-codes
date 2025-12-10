@@ -1,0 +1,276 @@
+import React, { useState, useEffect } from "react";
+import { SheetComponent } from "@antv/s2-react";
+import { setLang, EXTRA_FIELD } from '@antv/s2';
+import { merge } from 'lodash';
+setLang('en_US');
+
+const BORDER_COLOR = '#fff';
+const BACK_COLOR = '#fff';
+const HEADER_BACK_COLOR = '#1c5691';
+const CELL_ACTIVE_BACK_COLOR = '#1c5691';
+
+const GraphProblems = (props) => {
+
+    const getFormatter = (val) => {
+        let tags = [];
+        if (val?.length > 0) {
+            val.map(r => {
+                tags.push(r.tag + ":" + r.value);
+            });
+        }
+        return tags;
+    };
+
+    const dataCfg = {
+        fields: {
+            columns: ["clock", "Info", "host", "name", "duration", "acknowledged", "Actions", "tags"]
+        },
+        meta: [
+            {
+                field: "clock",
+                name: "Time"
+            },
+            {
+                field: "host",
+                name: "Host"
+            },
+            {
+                field: "name",
+                name: "Problem • Severity"
+            },
+            {
+                field: "duration",
+                name: "Duration"
+            },
+            {
+                field: "acknowledged",
+                name: "Ack"
+            },
+            {
+                field: "tags",
+                name: "Tags",
+                formatter: getFormatter
+            }
+        ],
+        data: props.data
+    };
+
+    const [optionThreshold] = useState({
+        style: {
+            layoutWidthType: 'colAdaptive',
+            colCfg: {
+                width: (col) => {
+                    if (col.field == "name") {
+                        return 300;
+                    }
+                }
+            }
+        },
+        conditions: {
+            background: [
+                {
+                    field: 'name',
+                    mapping(fieldValue, data) {
+                        return {
+                            fill: data?.severity_color
+                        }
+                    },
+                },
+            ],
+            text: [
+                {
+                    field: 'acknowledged',
+                    mapping(fieldValue) {
+                        if (fieldValue == "No") {
+                            return {
+                                fill: '#e33734',
+                            };
+                        } else {
+                            return {
+                                fill: '#30BF78',
+                            };
+                        }
+                    }
+                }
+            ]
+        }
+    });
+
+    const customTheme = {
+        background: {
+            color: "#fff",
+        },
+        cornerCell: {
+            cell: {
+                horizontalBorderColor: BORDER_COLOR,
+                verticalBorderColor: BORDER_COLOR,
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                backgroundColor: HEADER_BACK_COLOR,
+            },
+            text: {
+                fill: '#fff',
+            },
+            bolderText: {
+                fill: '#fff',
+                opacity: 1,
+                fontWeight: 500,
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 11
+            },
+        },
+        splitLine: {
+            horizontalBorderColor: BORDER_COLOR,
+            horizontalBorderColorOpacity: 1,
+            horizontalBorderWidth: 1,
+            verticalBorderColor: '#e6e6e6',
+            verticalBorderColorOpacity: 1,
+            verticalBorderWidth: 0.5,
+            showRightShadow: true,
+            shadowWidth: 10,
+            shadowColors: {
+                left: 'rgba(0,0,0,0.1)',
+                right: 'rgba(0,0,0,0)',
+            },
+        },
+
+        rowCell: {
+            cell: {
+                horizontalBorderColor: '#e6e6e6',
+                verticalBorderColor: '#e6e6e6',
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                backgroundColor: '#fff',
+                interactionState: {
+                    hover: {
+                        backgroundColor: '#fff',
+                        backgroundOpacity: 1,
+                    },
+                    selected: {
+                        backgroundColor: '#f4f4f4'
+                    }
+                }
+            },
+            bolderText: {
+                fill: '#212529',
+                opacity: 1,
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontWeight: 500,
+                fontSize: 11
+            },
+            text: {
+                fill: '#212529',
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 10
+            },
+        },
+
+        colCell: {
+            cell: {
+                horizontalBorderColor: '#fff',
+                verticalBorderColor: '#fff',
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                padding: {
+                    top: 12,
+                    right: 8,
+                    bottom: 12,
+                    left: 8,
+                },
+                backgroundColor: HEADER_BACK_COLOR,
+                interactionState: {
+                    hover: {
+                        backgroundColor: CELL_ACTIVE_BACK_COLOR,
+                        backgroundOpacity: 1,
+                    },
+                    selected: {
+                        backgroundColor: 'rgb(63, 69, 97)',
+                    },
+                },
+            },
+            text: {
+                fill: '#fff',
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 10
+            },
+            bolderText: {
+                fill: '#fff',
+                fontWeight: 500,
+                fontSize: 11,
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                opacity: 1,
+            },
+        },
+        scrollBar: {
+            lineCap: 'butt',
+            size: 10
+        },
+        dataCell: {
+            icon: {
+                size: 14,
+                margin: {
+                    left: 10,
+                },
+            },
+            cell: {
+                interactionState: {
+                    hover: {
+                        backgroundColor: null,
+                        backgroundOpacity: 1,
+                    },
+                    hoverFocus: {
+                        backgroundColor: null,
+                        backgroundOpacity: 1,
+                        borderColor: '#fff',
+                    },
+                    selected: {
+                        backgroundColor: null
+                    },
+                    unselected: {
+                        backgroundOpacity: 1,
+                        opacity: 1,
+                    },
+                },
+                horizontalBorderColor: '#e6e6e6',
+                verticalBorderColor: '#e6e6e6',
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                padding: {
+                    top: 0,
+                    right: 8,
+                    bottom: 2,
+                    left: 0,
+                },
+                backgroundColorOpacity: 1,
+                backgroundColor: BACK_COLOR,
+                crossBackgroundColor: BACK_COLOR,
+            },
+            text: {
+                fill: '#212529',
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 11
+            }
+        },
+    };
+
+    const getOptions = () => {
+        return optionThreshold;
+    };
+
+    return (
+        <SheetComponent
+            sheetType="table"
+            adaptive={{
+                width: true,
+                height: true
+            }}
+            dataCfg={dataCfg}
+            options={getOptions()}
+            themeCfg={{
+                theme: merge({}, customTheme),
+            }}
+        />
+    );
+};
+
+export default GraphProblems;
