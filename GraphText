@@ -1,0 +1,208 @@
+import React, { useState } from 'react';
+import { SheetComponent } from "@antv/s2-react";
+import { setLang } from '@antv/s2';
+import { merge } from 'lodash';
+setLang('en_US');
+
+const GraphText = (props) => {
+    const BORDER_COLOR = '#fff';
+    const BACK_COLOR = '#fff';
+    const HEADER_BACK_COLOR = '#1c5691';
+    const CELL_ACTIVE_BACK_COLOR = '#1c5691';
+
+    const dataCfg = {
+        fields: {
+            columns: ["clock_date", "item", "value"]
+        },
+        meta: [
+            {
+                field: "clock_date",
+                name: "Timestamp"
+            },
+            {
+                field: "item",
+                name: "Name"
+            },
+            {
+                field: "value",
+                name: "Value"
+            }
+        ],
+        data: props.data
+    };
+
+    const customTheme = {
+        background: {
+            color: "#fff",
+        },
+        cornerCell: {
+            cell: {
+                horizontalBorderColor: BORDER_COLOR,
+                verticalBorderColor: BORDER_COLOR,
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                backgroundColor: HEADER_BACK_COLOR,
+            },
+            text: {
+                fill: '#fff',
+            },
+            bolderText: {
+                fill: '#fff',
+                opacity: 1,
+                fontWeight: 500,
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 11
+            },
+        },
+        splitLine: {
+            horizontalBorderColor: BORDER_COLOR,
+            horizontalBorderColorOpacity: 1,
+            horizontalBorderWidth: 1,
+            verticalBorderColor: '#e6e6e6',
+            verticalBorderColorOpacity: 1,
+            verticalBorderWidth: 0.5,
+            showRightShadow: true,
+            shadowWidth: 10,
+            shadowColors: {
+                left: 'rgba(0,0,0,0.1)',
+                right: 'rgba(0,0,0,0)',
+            },
+        },
+
+        rowCell: {
+            cell: {
+                horizontalBorderColor: '#e6e6e6',
+                verticalBorderColor: '#e6e6e6',
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                backgroundColor: '#fff',
+                interactionState: {
+                    hover: {
+                        backgroundColor: '#fff',
+                        backgroundOpacity: 1,
+                    },
+                    selected: {
+                        backgroundColor: '#f4f4f4'
+                    }
+                }
+            },
+            bolderText: {
+                fill: '#212529',
+                opacity: 1,
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontWeight: 500,
+                fontSize: 11
+            },
+            text: {
+                fill: '#212529',
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 10
+            },
+        },
+
+        colCell: {
+            cell: {
+                horizontalBorderColor: '#fff',
+                verticalBorderColor: '#fff',
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                padding: {
+                    top: 12,
+                    right: 8,
+                    bottom: 12,
+                    left: 8,
+                },
+                backgroundColor: HEADER_BACK_COLOR,
+                interactionState: {
+                    hover: {
+                        backgroundColor: CELL_ACTIVE_BACK_COLOR,
+                        backgroundOpacity: 1,
+                    },
+                    selected: {
+                        backgroundColor: 'rgb(63, 69, 97)',
+                    },
+                },
+            },
+            text: {
+                fill: '#fff',
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 10
+            },
+            bolderText: {
+                fill: '#fff',
+                fontWeight: 500,
+                fontSize: 11,
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                opacity: 1,
+            },
+        },
+        scrollBar: {
+            lineCap: 'butt',
+            size: 10
+        },
+        dataCell: {
+            icon: {
+                size: 14,
+                margin: {
+                    left: 10,
+                },
+            },
+            cell: {
+                interactionState: {
+                    hover: {
+                        backgroundColor: null,
+                        backgroundOpacity: 1,
+                    },
+                    hoverFocus: {
+                        backgroundColor: null,
+                        backgroundOpacity: 1,
+                        borderColor: '#fff',
+                    },
+                    selected: {
+                        backgroundColor: null
+                    },
+                    unselected: {
+                        backgroundOpacity: 1,
+                        opacity: 1,
+                    },
+                },
+                horizontalBorderColor: '#e6e6e6',
+                verticalBorderColor: '#e6e6e6',
+                verticalBorderWidth: 0.5,
+                horizontalBorderWidth: 0.5,
+                padding: {
+                    top: 0,
+                    right: 8,
+                    bottom: 2,
+                    left: 0,
+                },
+                backgroundColorOpacity: 1,
+                backgroundColor: BACK_COLOR,
+                crossBackgroundColor: BACK_COLOR,
+            },
+            text: {
+                fill: '#212529',
+                fontFamily: "\"Noto Sans KR\", \"Helvetica Neue\", Arial, sans-serif",
+                fontSize: 11
+            }
+        },
+    };
+
+
+    return (
+        <div style={{ width: '100%', height: '100%' }}>
+            <SheetComponent
+                sheetType="table"
+                dataCfg={dataCfg}
+                // options={options}
+                themeCfg={{
+                    theme: merge({}, customTheme),
+                }}
+                adaptive={{ width: true, height: true }}
+            />
+        </div>
+
+    );
+};
+
+export default GraphText;
